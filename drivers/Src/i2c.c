@@ -253,7 +253,7 @@ void I2C_InteruptHandling( I2C_Handle_t* pI2CHandle){
 	}
 
 	//RXE event
-	else if(sr1 & I2C_FLAG_RXE) {
+	else if(sr1 & I2C_FLAG_RXNE) {
 
 	    if (pI2CHandle->pI2CConfig.I2C_ByteRecive == 1)
 	    {
@@ -306,7 +306,7 @@ static void I2C_ClearAddrFlag(I2C_RegDef_t* pI2Cx){
 //	(void)dummyRead;
 }
 
-void I2C_MasterRecivePolling(I2C_Handle_t* pI2CHandle, uint16_t* reciveData, uint8_t byteRecive, uint8_t address){
+void I2C_MasterRecivePolling(I2C_Handle_t* pI2CHandle, uint8_t* reciveData, uint8_t byteRecive, uint8_t address){
 
 	if(byteRecive>2){
 
@@ -316,7 +316,7 @@ void I2C_MasterRecivePolling(I2C_Handle_t* pI2CHandle, uint16_t* reciveData, uin
 		while(!I2C_GetFlagStatus(pI2CHandle->pI2Cx->SR1, I2C_FLAG_ADDR));
 		I2C_ClearAddrFlag(pI2CHandle->pI2Cx);
 		while(byteRecive>0){
-			while(!I2C_GetFlagStatus(pI2CHandle->pI2Cx->SR1, I2C_FLAG_RXE));
+			while(!I2C_GetFlagStatus(pI2CHandle->pI2Cx->SR1, I2C_FLAG_RXNE));
 			*reciveData = pI2CHandle->pI2Cx->DR;
 			reciveData++;
 			byteRecive--;
@@ -347,11 +347,22 @@ void I2C_MasterRecivePolling(I2C_Handle_t* pI2CHandle, uint16_t* reciveData, uin
 		reciveData++;
 		*reciveData = pI2CHandle->pI2Cx->DR;
 	}else if(byteRecive==1){
-		;
+		I2C_GenerateStartCondition(pI2CHandle->pI2Cx);
+		while(!I2C_GetFlagStatus(pI2CHandle->pI2Cx->SR1, I2C_FLAG_SB));
+		I2C_AddressPhaseRead(pI2CHandle->pI2Cx, address);
+		while(!I2C_GetFlagStatus(pI2CHandle->pI2Cx->SR1, I2C_FLAG_ADDR));
+		I2C_ACKManage(pI2CHandle->pI2Cx, DISABLE);
+//		I2C_ClearAddrFlag(pI2CHandle->pI2Cx);
+		volatile uint32_t temp = pI2CHandle->pI2Cx->SR1;
+		temp = pI2CHandle->pI2Cx->SR2;
+		I2C_GenerateStopCondition(pI2CHandle->pI2Cx);
+		while(!I2C_GetFlagStatus(pI2CHandle->pI2Cx->SR1, I2C_FLAG_RXNE));
+		*reciveData = pI2CHandle->pI2Cx->DR;
+
 	}
 }
 
-void I2C_MasterSendPolling(I2C_Handle_t* pI2CHandle, uint16_t* sendData, uint8_t byteSend, uint8_t address){
+void I2C_MasterSendPolling(I2C_Handle_t* pI2CHandle, uint8_t* sendData, uint8_t byteSend, uint8_t address){
 	uint8_t byteSend2 = byteSend+1;
 	I2C_GenerateStartCondition(pI2CHandle->pI2Cx);
 	while(!I2C_GetFlagStatus(pI2CHandle->pI2Cx->SR1, I2C_FLAG_SB));

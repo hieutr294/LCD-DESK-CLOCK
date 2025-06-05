@@ -16,14 +16,29 @@
  ******************************************************************************
  */
 
+/*
+	I2C pin
+	SCL -> B6
+	SDA -> B7
+	Config as alternate function open-drain
+ */
+
 #include <stdint.h>
+#include "stm32f103xx.h"
+#include "rtc.h"
 
 #if !defined(__SOFT_FP__) && defined(__ARM_FP)
   #warning "FPU is not initialized, but the project is compiling for an FPU. Please initialize the FPU before use."
 #endif
 
+RTC_RegDef_t* rtc = RTC;
+uint16_t sec = 0;
+
 int main(void)
 {
-    /* Loop forever */
-	for(;;);
+	rtcInit(rtc);
+	while(1){
+		sec = rtcGet(rtc);
+
+	}
 }

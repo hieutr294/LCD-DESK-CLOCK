@@ -199,28 +199,18 @@ typedef struct{
 	uint32_t CMAR;
 }DMA_RegDef_t;
 
-//typedef struct{
-//	uint32_t CR1;
-//	uint32_t CR2;
-//	uint32_t SMCR;
-//	uint32_t DIER;
-//	uint32_t SR;
-//	uint32_t EGR;
-//	uint32_t CCMR1;
-//	uint32_t CCMR2;
-//	uint32_t CCER;
-//	uint32_t CNT;
-//	uint32_t PSC;
-//	uint32_t ARR;
-//	uint32_t RCR;
-//	uint32_t CCR1;
-//	uint32_t CCR2;
-//	uint32_t CCR3;
-//	uint32_t CCR4;
-//	uint32_t BDTR;
-//	uint32_t DCR;
-//	uint32_t DMAR;
-//}TIMER_RegDef_t;
+typedef struct{
+	uint32_t CRH;
+	uint32_t CRL;
+	uint32_t PRLH;
+	uint32_t PRLL;
+	uint32_t DIVH;
+	uint32_t DIVL;
+	uint32_t CNTH;
+	uint32_t CNTL;
+	uint32_t ALRH;
+	uint32_t ALRL;
+}RTC_RegDef_t;
 
 typedef struct{
 	uint32_t CR1;
@@ -272,6 +262,11 @@ typedef struct{
 	uint32_t STK_CALIB;
 }SysTick_RegDef_t;
 
+typedef struct{
+	uint32_t PWR_CR;
+	uint32_t PWR_CSR;
+}PWR_RegDef_t;
+
 /*--------------------------Peripheral Define----------------------------*/
 
 #define GPIOA 				((GPIO_RegDef_t*)(GPIOA_BASE_ADDRESS))
@@ -304,6 +299,8 @@ typedef struct{
 #define USART1				((USART_RegDef_t*)(USART1_BASE_ADDRESS))
 #define USART2				((USART_RegDef_t*)(USART2_BASE_ADDRESS))
 #define USART3				((USART_RegDef_t*)(USART3_BASE_ADDRESS))
+#define RTC					((RTC_RegDef_t*)(RTC_BASE_ADDRESS))
+#define PWR					((PWR_RegDef_t*)(PWR_BASE_ADDRESS))
 
 #define TIM1				((TIMER_RegDef_t*)(TIM1_BASE_ADDRESS))
 #define TIM8				((TIMER_RegDef_t*)(TIM8_BASE_ADDRESS))
