@@ -267,6 +267,17 @@ typedef struct{
 	uint32_t PWR_CSR;
 }PWR_RegDef_t;
 
+typedef struct{
+	uint32_t __reserved1;
+	uint32_t DR1[10];
+	uint32_t RTCCR;
+	uint32_t CR;
+	uint32_t CSR;
+	uint32_t __reserved2;
+	uint32_t __reserved3;
+	uint32_t DR2[32];
+}BKP_RegDef_t;
+
 /*--------------------------Peripheral Define----------------------------*/
 
 #define GPIOA 				((GPIO_RegDef_t*)(GPIOA_BASE_ADDRESS))
@@ -301,7 +312,7 @@ typedef struct{
 #define USART3				((USART_RegDef_t*)(USART3_BASE_ADDRESS))
 #define RTC					((RTC_RegDef_t*)(RTC_BASE_ADDRESS))
 #define PWR					((PWR_RegDef_t*)(PWR_BASE_ADDRESS))
-
+#define BKP					((BKP_RegDef_t*)(BKP_BASE_ADDRESS))
 #define TIM1				((TIMER_RegDef_t*)(TIM1_BASE_ADDRESS))
 #define TIM8				((TIMER_RegDef_t*)(TIM8_BASE_ADDRESS))
 #define TIM2				((TIMER_RegDef_t*)(TIM2_BASE_ADDRESS))

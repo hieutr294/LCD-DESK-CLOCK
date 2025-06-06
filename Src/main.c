@@ -26,19 +26,19 @@
 #include <stdint.h>
 #include "stm32f103xx.h"
 #include "rtc.h"
+#include "backup.h"
 
 #if !defined(__SOFT_FP__) && defined(__ARM_FP)
   #warning "FPU is not initialized, but the project is compiling for an FPU. Please initialize the FPU before use."
 #endif
 
-RTC_RegDef_t* rtc = RTC;
-uint16_t sec = 0;
-
+BKP_RegDef_t* bkp = BKP;
+uint16_t read = 0;
 int main(void)
 {
-	rtcInit(rtc);
+	enableBackupReg(bkp);
+	bkpWrite(bkp, 10, 0);
 	while(1){
-		sec = rtcGet(rtc);
-
+		read = bkpRead(bkp, 0);
 	}
 }
