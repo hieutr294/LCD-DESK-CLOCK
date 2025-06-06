@@ -34,11 +34,13 @@
 
 BKP_RegDef_t* bkp = BKP;
 uint16_t read = 0;
+uint32_t read2 = 54934569;
+uint32_t value = 0;
 int main(void)
 {
 	enableBackupReg(bkp);
-	bkpWrite(bkp, 10, 0);
+	bkpWrite32(bkp, read2, 0);
 	while(1){
-		read = bkpRead(bkp, 0);
+		value = bkpRead32(bkp, 0);
 	}
 }
