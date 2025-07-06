@@ -11,6 +11,7 @@
 #include "stm32f103xx.h"
 
 void rtcInit(RTC_RegDef_t* rtc);
-uint16_t rtcGetSeconds(RTC_RegDef_t* rtc);
+uint32_t rtcGetSeconds(RTC_RegDef_t* rtc);
+void rtcSetSeconds(RTC_RegDef_t* rtc, uint32_t value);
 
 #endif /* INC_RTC_H_ */

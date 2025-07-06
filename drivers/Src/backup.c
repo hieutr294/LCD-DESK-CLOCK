@@ -11,7 +11,7 @@ void enableBackupReg(BKP_RegDef_t* bkp){
 	RCC_config_t* rcc = RCC;
 	PWR_RegDef_t* pwr = PWR;
 	rcc->APB1ENR |= (1<<28) | (1<<27); //enable Power and backup register
-	pwr->PWR_CR |= (1<<8); // enable bit DBP in power register to access rtc and backup
+ 	pwr->PWR_CR |= (1<<8); // enable bit DBP in power register to access rtc and backup
 }
 
 void bkpWrite16(BKP_RegDef_t* bkp, uint16_t data, uint8_t regNumber){

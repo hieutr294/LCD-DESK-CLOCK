@@ -17,11 +17,24 @@ void rtcInit(RTC_RegDef_t* rtc){
 	rcc->BDCR |= (1<<15) | (2<<8); // turn on rtc and select LSI as clock source
 	while(!(rtc->CRL&(1<<5))); // wait for rtc is not update by checking rtoff flag
 	rtc->CRL |= (1<<4); // enter config mode
+	rtc->CRH |= (1<<0);// enable sec interupt
 	rtc->PRLL = 39999; // config PRL is 39999 because using 40kHz LSI clock (PRL+1)/LSI = 1hz -> 1 seconds
 	rtc->CRL &= ~(1<<4); // exit config mode
 }
 
-uint16_t rtcGetSeconds(RTC_RegDef_t* rtc){
-	return (uint16_t)rtc->CNTL;
+void rtcSetSeconds(RTC_RegDef_t* rtc, uint32_t value){
+	while(!(rtc->CRL&(1<<5))); // wait for rtc is not update by checking rtoff flag
+	rtc->CRL |= (1<<4); // enter config mode
+	rtc->CNTL = (uint16_t)value&0xffff;
+	rtc->CNTH = (uint16_t)(value>>16);
+	rtc->CRL &= ~(1<<4); // exit config mode
+
+}
+
+uint32_t rtcGetSeconds(RTC_RegDef_t* rtc){
+	uint16_t highBit = rtc->CNTH;
+	uint16_t lowBit = rtc->CNTL;
+	uint32_t result = ((uint32_t)highBit << 16) | lowBit;
+	return result;
 }
 

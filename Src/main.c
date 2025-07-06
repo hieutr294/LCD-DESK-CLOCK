@@ -23,24 +23,118 @@
 	Config as alternate function open-drain
  */
 
+#include <date_time.h>
 #include <stdint.h>
 #include "stm32f103xx.h"
 #include "rtc.h"
 #include "backup.h"
+#include "encoder.h"
+#include "nvic.h"
+#include "interrupts.h"
+#include "gpio.h"
+#include "i2c.h"
+#include "lcd.h"
+#include "systemtick.h"
 
 #if !defined(__SOFT_FP__) && defined(__ARM_FP)
   #warning "FPU is not initialized, but the project is compiling for an FPU. Please initialize the FPU before use."
 #endif
 
+
+void interuptCall(void);
+
 BKP_RegDef_t* bkp = BKP;
-uint16_t read = 0;
-uint32_t read2 = 54934569;
-uint32_t value = 0;
+RTC_RegDef_t* rtc = RTC;
+Encoder_Config_t encoder;
+Interrupts_Config_t interupt;
+GPIO_Handle_t gpio;
+I2C_Handle_t i2c;
+Date date;
+
+volatile uint8_t flag = 0;
+
+uint8_t hour = 0;
+uint8_t minute = 0;
+uint32_t seconds = 0;
+
+uint8_t day = 0;
+uint8_t month = 0;
+uint16_t year = 0;
+
+char secondsText[2] = "";
+char minuteText[2] = "";
+char hourText[2] = "";
+char dayText[2] = "";
+char monthText[2] = "";
+char yearText [4] = "";
+char timeText[8] = "";
+char dateText[11] = "";
+
+uint8_t updateSec = 0;
+uint8_t updateMinute = 0;
+uint8_t updateHour = 0;
+
+volatile uint16_t encoderCount = 0;
+volatile uint8_t secFlag = 0;
+
+void(*funcPtr)(void) = interuptCall;
+
 int main(void)
 {
+	i2c.pI2CConfig.I2C_FMDutyCycle = I2C_FM_DUTY_2;
+	i2c.pI2CConfig.I2C_SCLSpeed = I2C_SCL_SPEED_SM;
+	i2c.pI2Cx = I2C1;
+
+	gpio.GPIO_PinConfig.pinMode = INPUT_PUPD;
+	gpio.GPIO_PinConfig.pinNumber = 2;
+	gpio.pGPIOX = GPIOA;
+
+	encoder.channelToCount = COUNT_ON_BOTH;
+	encoder.inputPolarity = INVERTED;
+	encoder.maxValue = 240;
+	encoder.timerX = TIM2;
+
+	interupt.edgeTrigger = FALLING;
+	interupt.interruptPinNumber = 2;
+	interupt.interruptPort = PORTA;
+	interupt.priority = 15;
+	date.unixTime = 1751780964  ;
+
+	I2C_ClockControl(i2c.pI2Cx, ENABLE);
+
+	GPIO_ClockControl(gpio.pGPIOX, ENABLE);
+	GPIO_Init(&gpio);
+	Interrupt_Config(&interupt);
+	EncoderInit(&encoder);
+	rtcInit(rtc);
+	I2C_Init(&i2c);
+	SystemTickInit();
+//	bmp180GetCalibData(&i2c);
+
+
+	LCD_Init(&i2c);
 	enableBackupReg(bkp);
-	bkpWrite32(bkp, read2, 0);
+	bkpWrite16(bkp, hour, 0);
+	bkpWrite16(bkp, minute, 1);
+	bkpWrite16(bkp, seconds, 2);
+	rtcSetSeconds(rtc, date.unixTime);
+	nvicEnable(3);
+
 	while(1){
-		value = bkpRead32(bkp, 0);
+		if(secFlag){
+			date.unixTime = rtcGetSeconds(rtc);
+
+			getDate(&date);
+			getTime(&date);
+
+			secFlag=0;
+		}
+	}
+}
+
+RTC_IRQHandler(void){
+	if(rtc->CRL&(1<<0)){
+		rtc->CRL &= ~(1<<0);
+		secFlag = 1;
 	}
 }

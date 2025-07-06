@@ -121,7 +121,7 @@ typedef struct{
 	uint32_t FTSR;
 	uint32_t SWIER;
 	uint32_t PR;
-}EXTI_Config_t;
+}EXTI_RegDef_t;
 
 typedef struct{
 	uint32_t CRL;
@@ -138,7 +138,7 @@ typedef struct{
 	uint32_t MAPR;
 	uint32_t EXTICR[4];
 	uint32_t MAPR2;
-}AFIO_Config_t;
+}AFIO_RegDef_t;
 
 typedef struct{
 	uint32_t CR;
@@ -287,7 +287,7 @@ typedef struct{
 #define GPIOE 				((GPIO_RegDef_t*)(GPIOE_BASE_ADDRESS))
 #define GPIOF 				((GPIO_RegDef_t*)(GPIOF_BASE_ADDRESS))
 #define GPIOG 				((GPIO_RegDef_t*)(GPIOG_BASE_ADDRESS))
-#define AFIO				((AFIO_Config_t*)(AFIO_BASE_ADDRESS))
+#define AFIO				((AFIO_RegDef_t*)(AFIO_BASE_ADDRESS))
 #define NVIC_ISER			((NVIC_ISER_t*)(NVIC_ISER_BASE_ADDRESS))
 #define NVIC_ICER			((NVIC_ICER_t*)(NVIC_ICER_BASE_ADDRESS))
 #define NVIC_ISPR			((NVIC_ISPR_t*)(NVIC_ISPR_BASE_ADDRESS))
@@ -295,7 +295,7 @@ typedef struct{
 #define NVIC_IABR			((NVIC_IABR_t*)(NVIC_IABR_BASE_ADDRESS))
 #define NVIC_IPR			((NVIC_IPR_t*)(NVIC_IPR_BASE_ADDRESS))
 #define STK					((SysTick_RegDef_t*)(STK_BASE_ADDRESS))
-#define EXTI				((EXTI_Config_t*)(EXTI_BASE_ADDRESS))
+#define EXTI				((EXTI_RegDef_t*)(EXTI_BASE_ADDRESS))
 #define RCC 				((RCC_config_t*)(RCC_BASE_ADDRESS))
 #define SPI1				((SPI_RegDef_t*)(SPI1_BASE_ADDRESS))
 #define SPI2				((SPI_RegDef_t*)(SPI2_BASE_ADDRESS))
@@ -453,8 +453,5 @@ typedef struct{
 /*-------------------------- IQRNUMBER ---------------------------------*/
 #define SPI1_GLOBAL_INTERRUPT 	32
 
-void delay_us(uint32_t us);
-
-void delay_ms(uint32_t ms);
 
 #endif /* INC_STM32F103XX_H_ */
