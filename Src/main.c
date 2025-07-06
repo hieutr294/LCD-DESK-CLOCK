@@ -40,9 +40,6 @@
   #warning "FPU is not initialized, but the project is compiling for an FPU. Please initialize the FPU before use."
 #endif
 
-
-void interuptCall(void);
-
 BKP_RegDef_t* bkp = BKP;
 RTC_RegDef_t* rtc = RTC;
 Encoder_Config_t encoder;
@@ -61,23 +58,12 @@ uint8_t day = 0;
 uint8_t month = 0;
 uint16_t year = 0;
 
-char secondsText[2] = "";
-char minuteText[2] = "";
-char hourText[2] = "";
-char dayText[2] = "";
-char monthText[2] = "";
-char yearText [4] = "";
-char timeText[8] = "";
-char dateText[11] = "";
-
 uint8_t updateSec = 0;
 uint8_t updateMinute = 0;
 uint8_t updateHour = 0;
 
 volatile uint16_t encoderCount = 0;
 volatile uint8_t secFlag = 0;
-
-void(*funcPtr)(void) = interuptCall;
 
 int main(void)
 {
@@ -98,7 +84,7 @@ int main(void)
 	interupt.interruptPinNumber = 2;
 	interupt.interruptPort = PORTA;
 	interupt.priority = 15;
-	date.unixTime = 1751780964  ;
+	date.unixTime = 1751811294;
 
 	I2C_ClockControl(i2c.pI2Cx, ENABLE);
 
@@ -127,6 +113,26 @@ int main(void)
 			getDate(&date);
 			getTime(&date);
 
+			LCD_setCuror(&i2c, 0, 0);
+			LCD_SendData(&i2c,'0'+date.hour/10);
+			LCD_SendData(&i2c,'0'+date.hour%10);
+			LCD_SendData(&i2c,':');
+			LCD_SendData(&i2c,'0'+date.minute/10);
+			LCD_SendData(&i2c,'0'+date.minute%10);
+			LCD_SendData(&i2c,':');
+			LCD_SendData(&i2c,'0'+date.seconds/10);
+			LCD_SendData(&i2c,'0'+date.seconds%10);
+			LCD_setCuror(&i2c, 0, 1);
+			LCD_SendData(&i2c,'0'+date.day/10);
+			LCD_SendData(&i2c,'0'+date.day%10);
+			LCD_SendData(&i2c,'/');
+			LCD_SendData(&i2c,'0'+date.month/10);
+			LCD_SendData(&i2c,'0'+date.month%10);
+			LCD_SendData(&i2c,'/');
+			LCD_SendData(&i2c,'0'+(date.year/1000)%10);
+			LCD_SendData(&i2c,'0'+(date.year/100)%10);
+			LCD_SendData(&i2c,'0'+(date.year/10)%10);
+			LCD_SendData(&i2c,'0'+date.year%10);
 			secFlag=0;
 		}
 	}
