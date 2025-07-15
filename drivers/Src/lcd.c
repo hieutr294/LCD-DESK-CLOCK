@@ -12,7 +12,8 @@
 #include "stdint.h"
 #include "systemtick.h"
 
-LCD_Data lcdData;
+LCD_Data lcdData ;
+LCD_State lcdState = {.bit = {.__r = 1}};
 uint8_t pcfAddress = 0x27;
 
 uint8_t LCD_CheckBF(I2C_Handle_t* i2c){
@@ -49,7 +50,22 @@ void LCD_BackLightControl(I2C_Handle_t* i2c, uint8_t condition){
 
 void LCD_DisplaySetting(I2C_Handle_t* i2c, uint8_t display, uint8_t cursor, uint8_t blinking){
     uint8_t cmd = 0x0f;  // Mặc định 4-bit, 1 dòng
-
+    if(cursor){
+    	cmd |= (1<<1);
+    }else if(!cursor){
+    	cmd &= ~(1<<1);
+    }
+    if(blinking){
+    	cmd |= (1<<0);
+    }else if(!blinking){
+    	cmd &= ~(1<<0);
+    }
+    if(display){
+    	cmd |= (1<<2);
+    }else if(!display){
+    	cmd &= ~(1<<2);
+    }
+    lcdState.full = cmd;
     // Gửi theo chuẩn 4-bit (sau khi đã vào 4-bit mode)
     LCD_Send4bit(i2c,0,0, (cmd >> 4) & 0x0F);  // MSB
     LCD_Send4bit(i2c,0,0, cmd & 0x0F);         // LSB
@@ -122,7 +138,10 @@ void LCD_Init(I2C_Handle_t* i2c){
 	LCD_BackLightControl(i2c, ENABLE);
 	LCD_FucntionSet(i2c, BIT_4_MODE, 2);
 	LCD_ClearScreen(i2c);
-	LCD_DisplaySetting(i2c, ENABLE, ENABLE, ENABLE);
+	LCD_Display(i2c, ENABLE);
+	LCD_Cursor(i2c, DISABLE);
+	LCD_Blinking(i2c, DISABLE);
+//	LCD_DisplaySetting(i2c, ENABLE, DISABLE, DISABLE);
 	LCD_SetEntryMode(i2c);
 }
 
@@ -180,7 +199,7 @@ void LCD_setCuror(I2C_Handle_t* i2c, uint8_t position, uint8_t line){
 }
 
 void LCD_Read4bit(I2C_Handle_t* i2c, uint16_t* data){
-	lcdData.get.RS = 0; //RS
+	lcdData.get.RS = 1; //RS
 	lcdData.get.RW = 1; //RW
 //	lcdData.get.data = 0;
 	I2C_MasterSendPolling(i2c, &(lcdData.full), 1, pcfAddress);
@@ -197,3 +216,40 @@ void LCD_Read4bit(I2C_Handle_t* i2c, uint16_t* data){
 //	delay_ms(1);
 }
 
+void LCD_Cursor(I2C_Handle_t* i2c, uint8_t condition){
+	if(condition){
+		lcdState.bit.cursor = 1;
+	}else{
+		lcdState.bit.cursor = 0;
+	}
+
+    LCD_Send4bit(i2c,0,0, (lcdState.full >> 4) & 0x0F);  // MSB
+    LCD_Send4bit(i2c,0,0, lcdState.full & 0x0F);         // LSB
+
+    delay_ms(1);
+
+}
+
+void LCD_Blinking(I2C_Handle_t* i2c, uint8_t condition){
+	if(condition){
+		lcdState.bit.blinking = 1;
+	}else{
+		lcdState.bit.blinking = 0;
+	}
+    LCD_Send4bit(i2c,0,0, (lcdState.full >> 4) & 0x0F);  // MSB
+    LCD_Send4bit(i2c,0,0, lcdState.full & 0x0F);         // LSB
+
+    delay_ms(1);
+}
+
+void LCD_Display(I2C_Handle_t* i2c, uint8_t condition){
+	if(condition){
+		lcdState.bit.display = 1;
+	}else{
+		lcdState.bit.display = 0;
+	}
+    LCD_Send4bit(i2c,0,0, (lcdState.full >> 4) & 0x0F);  // MSB
+    LCD_Send4bit(i2c,0,0, lcdState.full & 0x0F);         // LSB
+
+    delay_ms(1);
+}

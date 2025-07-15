@@ -18,6 +18,15 @@ typedef union{
 	uint16_t full;
 }LCD_Data;
 
+typedef union{
+	struct{
+		uint8_t blinking : 1;
+		uint8_t cursor : 1;
+		uint8_t display : 1;
+		uint8_t __r : 1;
+	}bit;
+	uint8_t full;
+}LCD_State;
 
 uint8_t LCD_CheckBF();
 void LCD_Init(I2C_Handle_t* i2c);
@@ -33,3 +42,6 @@ void LCD_Send4bit(I2C_Handle_t* i2c, uint8_t RS, uint8_t RW, uint8_t data);
 void LCD_Read4bit(I2C_Handle_t* i2c, uint16_t* data);
 void LCD_setCuror(I2C_Handle_t* i2c, uint8_t position, uint8_t line);
 void LCD_ReturnHome(I2C_Handle_t* i2c);
+void LCD_Cursor(I2C_Handle_t* i2c, uint8_t condition);
+void LCD_Display(I2C_Handle_t* i2c, uint8_t condition);
+void LCD_Blinking(I2C_Handle_t* i2c, uint8_t condition);

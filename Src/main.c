@@ -40,6 +40,8 @@
   #warning "FPU is not initialized, but the project is compiling for an FPU. Please initialize the FPU before use."
 #endif
 
+
+
 BKP_RegDef_t* bkp = BKP;
 RTC_RegDef_t* rtc = RTC;
 Encoder_Config_t encoder;
@@ -47,8 +49,6 @@ Interrupts_Config_t interupt;
 GPIO_Handle_t gpio;
 I2C_Handle_t i2c;
 Date date;
-
-volatile uint8_t flag = 0;
 
 uint8_t hour = 0;
 uint8_t minute = 0;
@@ -61,12 +61,35 @@ uint16_t year = 0;
 uint8_t updateSec = 0;
 uint8_t updateMinute = 0;
 uint8_t updateHour = 0;
+volatile uint8_t timer_ovf = 0;
 
+uint32_t pressCount = 0;
+uint8_t buttonState = 0;
 volatile uint16_t encoderCount = 0;
 volatile uint8_t secFlag = 0;
-
+volatile uint8_t buttonPressed = 0;
+uint32_t startTime = 0;
+uint32_t endTime = 0;
+uint32_t duration = 0;
+uint32_t pressDuration = 0;
+typedef enum{
+	HOME,
+	SETTING,
+}State;
+void buttonInteruptHandlling(void);
+void (*buttonInteruptPtrFunc)(void) = 0;
+void timerInit(TIMER_RegDef_t* timerX);
+void startTimer(TIMER_RegDef_t* timerX);
+void stopTimer(TIMER_RegDef_t* timerX);
+State programState = HOME;
 int main(void)
 {
+//	timer = TIM3;
+
+
+	timerInit(TIM3);
+	buttonInteruptPtrFunc = buttonInteruptHandlling;
+
 	i2c.pI2CConfig.I2C_FMDutyCycle = I2C_FM_DUTY_2;
 	i2c.pI2CConfig.I2C_SCLSpeed = I2C_SCL_SPEED_SM;
 	i2c.pI2Cx = I2C1;
@@ -80,7 +103,7 @@ int main(void)
 	encoder.maxValue = 240;
 	encoder.timerX = TIM2;
 
-	interupt.edgeTrigger = FALLING;
+	interupt.edgeTrigger = RISING_FALLING;
 	interupt.interruptPinNumber = 2;
 	interupt.interruptPort = PORTA;
 	interupt.priority = 15;
@@ -105,6 +128,7 @@ int main(void)
 	bkpWrite16(bkp, seconds, 2);
 	rtcSetSeconds(rtc, date.unixTime);
 	nvicEnable(3);
+
 
 	while(1){
 		if(secFlag){
@@ -135,7 +159,54 @@ int main(void)
 			LCD_SendData(&i2c,'0'+date.year%10);
 			secFlag=0;
 		}
+
+		if(timer_ovf){
+			if(programState == HOME){
+				programState = SETTING;
+				timer_ovf = 0;
+			}else{
+				programState = HOME;
+				timer_ovf = 0;
+			}
+		}
+
+		if(programState==HOME){
+			; // do some thing
+		}
+		else if(programState==SETTING){
+			; // do some thing
+		}
 	}
+}
+
+void timerInit(TIMER_RegDef_t* timerX){
+	TIM3_PCLK_EN();
+	timerX->DIER |= (1<<0);
+	timerX->PSC = 799;
+	timerX->ARR = 19999;
+	timerX->CNT = 0;
+	timerX->CR1 |= (1<<2);
+	timerX->EGR |= (1<<0);
+	timerX->SR &= ~(1<<0);
+	nvicEnable(29);
+}
+
+void startTimer(TIMER_RegDef_t* timerX){
+    timerX->CR1 |= (1 << 0);   // Bật Timer
+}
+
+void stopTimer(TIMER_RegDef_t* timerX){
+	timerX->CR1 &= ~(1<<0);
+}
+
+void buttonInteruptHandlling(void){
+	buttonState = GPIO_ReadFromInputPin(GPIOA, 2);
+	if(!buttonState){
+		startTimer(TIM3);
+	}else{
+		stopTimer(TIM3);
+	}
+	buttonPressed=1;
 }
 
 RTC_IRQHandler(void){
@@ -143,4 +214,18 @@ RTC_IRQHandler(void){
 		rtc->CRL &= ~(1<<0);
 		secFlag = 1;
 	}
+	return 0;
+}
+
+EXTI2_IRQHandler(void){
+	Interrupts_Handling(&interupt,buttonInteruptPtrFunc);
+}
+
+TIM3_IRQHandler(void){
+	if(TIM3->SR | (1<<0)){
+		stopTimer(TIM3);
+		TIM3->SR &= ~(1<<0);
+		timer_ovf = 1;
+	}
+
 }
